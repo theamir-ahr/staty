@@ -1,0 +1,6 @@
+{
+  "name": "Staty",
+  "description": "Convert Bank Statement PDFs to Excel — Instantly, Privately, Free",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
