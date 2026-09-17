@@ -43,65 +43,100 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onNavigate }) => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 space-y-14">
-      {/* Header */}
-      <div className="text-center max-w-3xl mx-auto space-y-4">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 border border-green-200 text-green-800 text-xs font-semibold tracking-wide uppercase">
-          <Sparkles className="w-3.5 h-3.5 text-green-600" />
-          <span>Flexible Plans for Everyone</span>
+    <div className="bg-[#f8fafc] min-h-screen">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+
+        {/* Header - EXACTLY like your screenshot */}
+        <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-green-50 border border-green-200 text-green-800 text- font-bold tracking-widest uppercase">
+            <Sparkles className="w-3.5 h-3.5 text-green-600" />
+            <span>FLEXIBLE PLANS FOR EVERYONE</span>
+          </div>
+          <h1 className="text- sm:text-5xl font-extrabold text-slate-900 tracking-tight">
+            Simple, Transparent Pricing
+          </h1>
+          <p className="text- sm:text- text-slate-500">
+            No hidden fees. Cancel anytime. Choose the plan that fits your bookkeeping workflow.
+          </p>
         </div>
-        <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
-          Simple, Transparent Pricing
-        </h1>
-        <p className="text-base sm:text-lg text-slate-600">
-          No hidden fees. Cancel anytime. Choose the plan that fits your bookkeeping workflow.
-        </p>
+
+        {/* Cards - EXACTLY like your screenshot */}
+        <div className="grid md:grid-cols-3 gap-6 lg:gap-8 items-start">
+
+          {/* Free */}
+          <div className="bg-white border border-slate-200 rounded- p-8 flex flex-col min-h-">
+            <h3 className="font-bold text-slate-900 text-">Free</h3>
+            <p className="text-slate-500 text- mt-2 leading-">Ideal for individuals and quick one-off statement conversions.</p>
+            <div className="mt-6 flex items-baseline gap-2">
+              <span className="text- font-extrabold text-slate-900">$0</span>
+              <span className="text-slate-500 text-">/ forever</span>
+            </div>
+            <div className="h- bg-slate-100 my-6"></div>
+            <p className="text- font-bold tracking-widest text-slate-400 uppercase mb-4">Included Features</p>
+            <ul className="space-y-3.5 text- flex-1">
+              <li className="flex gap-2.5"><Check className="w-5 h-5 text-green-600 shrink-0"/> 1 statement conversion/day</li>
+              <li className="flex gap-2.5"><Check className="w-5 h-5 text-green-600 shrink-0"/> Up to 2 pages per file</li>
+              <li className="flex gap-2.5"><Check className="w-5 h-5 text-green-600 shrink-0"/> Excel & CSV export</li>
+              <li className="flex gap-2.5 text-slate-400"><Check className="w-5 h-5 text-slate-300 shrink-0"/> 100% Client-side privacy</li>
+            </ul>
+            <button onClick={() => onNavigate('home')} className="w-full mt-8 bg-slate-100 text-slate-600 border border-slate-200 rounded-full py-3 font-semibold text-">Currently Active</button>
+          </div>
+
+          {/* Monthly - BEST VALUE */}
+          <div className="bg-white border-2 border-green-500 rounded- p-8 flex flex-col min-h- relative shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-green-600 text-white text- px-4 py-1.5 rounded-full font-bold tracking-widest">BEST VALUE</div>
+            <h3 className="font-bold text-slate-900 text-">Monthly</h3>
+            <p className="text-slate-500 text- mt-2 leading-">Perfect for accountants, bookkeepers, and active businesses.</p>
+            <div className="mt-6 flex items-baseline gap-2">
+              <span className="text- font-extrabold text-slate-900">$12</span>
+              <span className="text-slate-500 text-">/ month</span>
+            </div>
+            <p className="text-slate-500 text- mt-1">Billed monthly, cancel anytime</p>
+            <div className="h- bg-slate-100 my-6"></div>
+            <p className="text- font-bold tracking-widest text-slate-400 uppercase mb-4">Everything in Free, Plus</p>
+            <ul className="space-y-3.5 text- flex-1">
+              <li className="flex gap-2.5"><Check className="w-5 h-5 text-green-600 shrink-0"/><span className="font-medium">Unlimited conversions</span></li>
+              <li className="flex gap-2.5"><Check className="w-5 h-5 text-green-600 shrink-0"/><span className="font-medium">Unlimited pages</span></li>
+              <li className="flex gap-2.5"><Check className="w-5 h-5 text-green-600 shrink-0"/> Excel, CSV & QuickBooks export</li>
+              <li className="flex gap-2.5"><Check className="w-5 h-5 text-green-600 shrink-0"/> Priority support</li>
+              <li className="flex gap-2.5"><Check className="w-5 h-5 text-green-600 shrink-0"/> Early access to upcoming OCR parser</li>
+            </ul>
+            <button onClick={openMonthly} className="w-full mt-8 bg-black text-white rounded-full py-3.5 font-semibold text- hover:bg-slate-800 transition">Subscribe Monthly</button>
+          </div>
+
+          {/* Annual */}
+          <div className="bg-white border border-slate-200 rounded- p-8 flex flex-col min-h-">
+            <div className="flex items-center gap-2.5">
+              <h3 className="font-bold text-slate-900 text-">Annual</h3>
+              <span className="bg-green-50 text-green-700 border border-green-100 text- px-2.5 py-1 rounded-full font-bold">Save 31%</span>
+            </div>
+            <p className="text-slate-500 text- mt-2 leading-">Maximum savings for established accounting practices.</p>
+            <div className="mt-6 flex items-baseline gap-2">
+              <span className="text- font-extrabold text-slate-900">$99</span>
+              <span className="text-slate-500 text-">/ year</span>
+            </div>
+            <p className="text-slate-500 text- mt-1">Just $8.25/month</p>
+            <div className="h- bg-slate-100 my-6"></div>
+            <p className="text- font-bold tracking-widest text-slate-400 uppercase mb-4">Everything in Monthly</p>
+            <ul className="space-y-3.5 text- flex-1">
+              <li className="flex gap-2.5"><Check className="w-5 h-5 text-green-600 shrink-0"/> Everything in Monthly</li>
+              <li className="flex gap-2.5 text-green-700 font-medium"><Check className="w-5 h-5 text-green-600 shrink-0"/> Save 31% vs monthly</li>
+              <li className="flex gap-2.5"><Check className="w-5 h-5 text-green-600 shrink-0"/> Unlimited conversions</li>
+              <li className="flex gap-2.5"><Check className="w-5 h-5 text-green-600 shrink-0"/> Priority support</li>
+              <li className="flex gap-2.5"><Check className="w-5 h-5 text-green-600 shrink-0"/> Multi-year price lock</li>
+            </ul>
+            <button onClick={openAnnual} className="w-full mt-8 bg-black text-white rounded-full py-3.5 font-semibold text- hover:bg-slate-800 transition">Subscribe Annual</button>
+          </div>
+
+        </div>
+
+        <div className="flex justify-center mt-12">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-500 text-">
+            <span>Paid plans will be active via secure checkout (powered by Paddle).</span>
+          </div>
+        </div>
+
       </div>
-
-      {/* Cards */}
-      <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
-        {/* Free */}
-        <div className="border rounded-2xl p-8 flex flex-col">
-          <h3 className="font-semibold text-slate-900">Free</h3>
-          <div className="text-4xl font-bold mt-4">$0 <span className="text-base font-normal text-slate-500">/forever</span></div>
-          <p className="text-sm text-slate-500 mt-2">Perfect for trying out Staty</p>
-          <button onClick={() => onNavigate('home')} className="w-full mt-6 border rounded-full py-3 font-semibold">Current Plan</button>
-          <ul className="mt-8 space-y-3 text-sm">
-            <li className="flex gap-2"><Check className="w-4 h-4 text-green-600"/> 5 conversions / day</li>
-            <li className="flex gap-2"><Check className="w-4 h-4 text-green-600"/> Basic file support</li>
-            <li className="flex gap-2"><Check className="w-4 h-4 text-green-600"/> Standard speed</li>
-          </ul>
-        </div>
-
-        {/* Monthly */}
-        <div className="border-2 border-green-500 rounded-2xl p-8 flex flex-col relative shadow-xl">
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white text-xs px-3 py-1 rounded-full font-bold">BEST VALUE</div>
-          <h3 className="font-semibold text-slate-900">Monthly</h3>
-          <div className="text-4xl font-bold mt-4">$12 <span className="text-base font-normal text-slate-500">/month</span></div>
-          <p className="text-sm text-slate-500 mt-2">Billed monthly, cancel anytime</p>
-          <button onClick={openMonthly} className="w-full mt-6 bg-black text-white rounded-full py-3 font-semibold hover:bg-slate-800">Subscribe Monthly</button>
-          <ul className="mt-8 space-y-3 text-sm">
-            <li className="flex gap-2"><Check className="w-4 h-4 text-green-600"/> Unlimited conversions</li>
-            <li className="flex gap-2"><Check className="w-4 h-4 text-green-600"/> All file formats</li>
-            <li className="flex gap-2"><Check className="w-4 h-4 text-green-600"/> Priority speed</li>
-            <li className="flex gap-2"><Check className="w-4 h-4 text-green-600"/> No watermarks</li>
-          </ul>
-        </div>
-
-        {/* Annual */}
-        <div className="border rounded-2xl p-8 flex flex-col">
-          <h3 className="font-semibold text-slate-900 flex items-center gap-2">Annual <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">Save 31%</span></h3>
-          <div className="text-4xl font-bold mt-4">$99 <span className="text-base font-normal text-slate-500">/year</span></div>
-          <p className="text-sm text-slate-500 mt-2">Just $8.25/month</p>
-          <button onClick={openAnnual} className="w-full mt-6 bg-black text-white rounded-full py-3 font-semibold hover:bg-slate-800">Subscribe Annual</button>
-          <ul className="mt-8 space-y-3 text-sm">
-            <li className="flex gap-2"><Check className="w-4 h-4 text-green-600"/> Everything in Monthly</li>
-            <li className="flex gap-2"><Check className="w-4 h-4 text-green-600"/> 31% savings</li>
-            <li className="flex gap-2"><Check className="w-4 h-4 text-green-600"/> Early access</li>
-          </ul>
-        </div>
-      </div>
-      <p className="text-center text-xs text-slate-400">Secure checkout by Paddle • Cancel anytime • 14-day guarantee</p>
     </div>
   )
 }
