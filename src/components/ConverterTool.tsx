@@ -1,12 +1,12 @@
-import React, { useState, useRef } from 'react';
-import { 
-  UploadCloud, 
-  FileSpreadsheet, 
-  FileText, 
-  ShieldCheck, 
-  Download, 
-  RefreshCw, 
-  AlertTriangle, 
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  UploadCloud,
+  FileSpreadsheet,
+  FileText,
+  ShieldCheck,
+  Download,
+  RefreshCw,
+  AlertTriangle,
   AlertCircle,
   Sparkles,
   CheckCircle2,
@@ -19,12 +19,56 @@ import { parsePdfStatement } from '../utils/pdfParser';
 import { exportToCsv, exportToExcel } from '../utils/excelExport';
 import { SAMPLE_STATEMENT_RESULT } from '../utils/sampleData';
 
+// --- PRO LOGIC - ADDED ---
+const isProUser = () => {
+  if (typeof window === 'undefined') return false;
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('paid') === 'success') {
+    localStorage.setItem('staty_pro', 'true');
+    // clean url
+    window.history.replaceState({}, '', window.location.pathname);
+    return true;
+  }
+  return localStorage.getItem('staty_pro') === 'true';
+};
+
+const getTodayStr = () => new Date().toISOString().split('T')[0];
+
+const getDailyCount = () => {
+  const data = localStorage.getItem('staty_daily');
+  if (!data) return 0;
+  try {
+    const parsed = JSON.parse(data);
+    if (parsed.date === getTodayStr()) return parsed.count || 0;
+    return 0;
+  } catch { return 0; }
+};
+
+const incrementDailyCount = () => {
+  const count = getDailyCount() + 1;
+  localStorage.setItem('staty_daily', JSON.stringify({ date: getTodayStr(), count }));
+  return count;
+};
+// --- END PRO LOGIC ---
+
 export const ConverterTool: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [parseResult, setParseResult] = useState<ParseResult | null>(null);
   const [showRawView, setShowRawView] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showProToast, setShowProToast] = useState(false);
+
+  // Check for?paid=success on load
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('paid') === 'success') {
+      localStorage.setItem('staty_pro', 'true');
+      setShowProToast(true);
+      window.history.replaceState({}, '', window.location.pathname);
+      setTimeout(() => setShowProToast(false), 5000);
+    }
+  }, []);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -57,7 +101,7 @@ export const ConverterTool: React.FC = () => {
   };
 
   const processFile = async (file: File) => {
-    if (!file.name.toLowerCase().endsWith('.pdf') && file.type !== 'application/pdf') {
+    if (!file.name.toLowerCase().endsWith('.pdf') && file.type!== 'application/pdf') {
       setParseResult({
         success: false,
         transactions: [],
@@ -71,10 +115,56 @@ export const ConverterTool: React.FC = () => {
       return;
     }
 
+    // --- PRO CHECK - DAILY LIMIT ---
+    if (!isProUser()) {
+      const dailyCount = getDailyCount();
+      if (dailyCount >= 1) {
+        setParseResult({
+          success: false,
+          transactions: [],
+          totalRows: 0,
+          columnFormat: 'two-amounts',
+          columns: [],
+          fileName: file.name,
+          pageCount: 0,
+          error: 'FREE LIMIT REACHED: You have used your 1 free conversion for today. Please upgrade to Pro for unlimited conversions. 🚀',
+        });
+        // Optional redirect to pricing
+        setTimeout(() => {
+          window.location.hash = '#pricing';
+          window.scrollTo(0,0);
+        }, 1500);
+        return;
+      }
+    }
+
     setIsProcessing(true);
     try {
       const result = await parsePdfStatement(file);
+
+      // --- PRO CHECK - PAGE LIMIT ---
+      if (!isProUser() && result.pageCount > 2) {
+        setParseResult({
+          success: false,
+          transactions: [],
+          totalRows: 0,
+          columnFormat: 'two-amounts',
+          columns: [],
+          fileName: file.name,
+          pageCount: result.pageCount,
+          error: `FREE LIMIT: This file has ${result.pageCount} pages. Free plan allows up to 2 pages only. Upgrade to Pro for unlimited pages. Your file has ${result.pageCount} pages.`,
+        });
+        setIsProcessing(false);
+        return;
+      }
+
       setParseResult(result);
+
+      // Increment daily count only on success for free users
+      if (result.success &&!isProUser()) {
+        incrementDailyCount();
+      }
+
     } catch (err: any) {
       setParseResult({
         success: false,
@@ -88,7 +178,6 @@ export const ConverterTool: React.FC = () => {
       });
     } finally {
       setIsProcessing(false);
-      // Reset input value so same file can be re-selected if desired
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -122,10 +211,26 @@ export const ConverterTool: React.FC = () => {
 
   return (
     <div id="converter-tool-container" className="w-full max-w-5xl mx-auto">
+      {/* Pro Toast */}
+      {showProToast && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-green-600 text-white px-6 py-3 rounded-full shadow-xl flex items-center gap-2 animate-bounce">
+          <CheckCircle2 className="w-5 h-5" />
+          <span className="font-bold text-sm">🎉 Pro Activated! Unlimited conversions unlocked</span>
+        </div>
+      )}
+
+      {/* Pro Badge - shows only for pro */}
+      {isProUser() && (
+        <div className="flex justify-center mb-3">
+          <div className="inline-flex items-center gap-1.5 bg-black text-white px-3 py-1 rounded-full text-xs font-bold tracking-widest">
+            <Sparkles className="w-3 h-3 text-yellow-400" /> PRO ACTIVE - UNLIMITED
+          </div>
+        </div>
+      )}
+
       {/* Upload Box Card */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xl shadow-slate-200/40 p-6 sm:p-10 transition-all">
-        
-        {/* Hidden File Input */}
+
         <input
           ref={fileInputRef}
           type="file"
@@ -135,7 +240,6 @@ export const ConverterTool: React.FC = () => {
           id="pdf-file-input"
         />
 
-        {/* Drag & Drop Area */}
         <div
           id="dropzone"
           onDragOver={handleDragOver}
@@ -144,11 +248,11 @@ export const ConverterTool: React.FC = () => {
           onClick={() => fileInputRef.current?.click()}
           className={`relative border-2 border-dashed rounded-xl p-8 sm:p-12 text-center cursor-pointer transition-all duration-200 group ${
             isDragging
-              ? 'border-green-500 bg-green-50/60 scale-[0.99]'
+             ? 'border-green-500 bg-green-50/60 scale-[0.99]'
               : 'border-slate-300 hover:border-green-500 bg-slate-50/50 hover:bg-green-50/20'
           }`}
         >
-          {isProcessing ? (
+          {isProcessing? (
             <div className="py-8 flex flex-col items-center justify-center space-y-4">
               <div className="relative">
                 <div className="w-14 h-14 border-4 border-slate-200 border-t-green-600 rounded-full animate-spin" />
@@ -188,14 +292,13 @@ export const ConverterTool: React.FC = () => {
                 </span>
                 <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-200 px-3 py-1 rounded-md">
                   <FileSpreadsheet className="w-3.5 h-3.5 text-green-600" />
-                  Converts to .XLSX & .CSV
+                  Converts to.XLSX &.CSV
                 </span>
               </div>
             </div>
           )}
         </div>
 
-        {/* Trust Badge (Mandatory requirement #10) */}
         <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div
             id="trust-badge"
@@ -207,8 +310,7 @@ export const ConverterTool: React.FC = () => {
             </span>
           </div>
 
-          {/* Try sample statement button */}
-          {!parseResult && !isProcessing && (
+          {!parseResult &&!isProcessing && (
             <button
               id="try-sample-btn"
               type="button"
@@ -221,7 +323,6 @@ export const ConverterTool: React.FC = () => {
           )}
         </div>
 
-        {/* Warning: Scanned PDF (Mandatory requirement #4) */}
         {parseResult && parseResult.isScanned && (
           <div
             id="scanned-pdf-warning"
@@ -241,8 +342,7 @@ export const ConverterTool: React.FC = () => {
           </div>
         )}
 
-        {/* Error: No transactions detected (Mandatory requirement #5) */}
-        {parseResult && !parseResult.success && !parseResult.isScanned && (
+        {parseResult &&!parseResult.success &&!parseResult.isScanned && (
           <div
             id="parse-error-message"
             className="mt-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 flex items-start gap-3 text-sm"
@@ -264,11 +364,9 @@ export const ConverterTool: React.FC = () => {
           </div>
         )}
 
-        {/* Success State & Preview Table (Mandatory requirements #6, #7, #8, #9) */}
         {parseResult && parseResult.success && parseResult.transactions.length > 0 && (
           <div id="statement-preview-container" className="mt-8 pt-8 border-t border-slate-200 space-y-6">
-            
-            {/* Action Bar Header */}
+
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
@@ -277,15 +375,14 @@ export const ConverterTool: React.FC = () => {
                     Extracted {parseResult.totalRows} Transactions
                   </h3>
                   <span className="text-xs font-medium px-2 py-0.5 rounded bg-green-100 text-green-800">
-                    {parseResult.columnFormat === 'three-amounts' ? '3-Amount Format' : parseResult.columnFormat === 'two-amounts' ? '2-Amount Format' : '1-Amount Format'}
+                    {parseResult.columnFormat === 'three-amounts'? '3-Amount Format' : parseResult.columnFormat === 'two-amounts'? '2-Amount Format' : '1-Amount Format'}
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 truncate max-w-md">
-                  File: <span className="font-medium text-slate-700">{parseResult.fileName}</span> ({parseResult.pageCount} {parseResult.pageCount === 1 ? 'page' : 'pages'})
+                  File: <span className="font-medium text-slate-700">{parseResult.fileName}</span> ({parseResult.pageCount} {parseResult.pageCount === 1? 'page' : 'pages'})
                 </p>
               </div>
 
-              {/* Download buttons */}
               <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <button
                   id="download-excel-btn"
@@ -316,29 +413,26 @@ export const ConverterTool: React.FC = () => {
               </div>
             </div>
 
-            {/* Note about 50 preview rows */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-500 px-1 gap-2">
               <div className="flex items-center gap-1.5">
                 <TableIcon className="w-4 h-4 text-slate-400" />
                 <span>
                   {parseResult.totalRows > 50
-                    ? `Showing first 50 rows. Download the file to see all ${parseResult.totalRows} transactions.`
+                   ? `Showing first 50 rows. Download the file to see all ${parseResult.totalRows} transactions.`
                     : `Showing all ${parseResult.totalRows} transactions in preview.`}
                 </span>
               </div>
 
-              {/* Toggle raw line toggle for troubleshooting */}
               <button
                 type="button"
                 onClick={() => setShowRawView(!showRawView)}
                 className="inline-flex items-center gap-1 text-slate-500 hover:text-slate-700"
               >
-                <span>{showRawView ? 'Hide raw line view' : 'Show raw parsed line'}</span>
-                {showRawView ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                <span>{showRawView? 'Hide raw line view' : 'Show raw parsed line'}</span>
+                {showRawView? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
               </button>
             </div>
 
-            {/* Preview Table */}
             <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-inner bg-white">
               <table className="w-full text-left text-xs sm:text-sm border-collapse">
                 <thead>
@@ -348,7 +442,7 @@ export const ConverterTool: React.FC = () => {
                       <th
                         key={col.key}
                         className={`py-3 px-3 sm:px-4 ${
-                          col.align === 'right' ? 'text-right' : 'text-left'
+                          col.align === 'right'? 'text-right' : 'text-left'
                         }`}
                       >
                         {col.label}
@@ -374,21 +468,21 @@ export const ConverterTool: React.FC = () => {
                           <td
                             key={col.key}
                             className={`py-2.5 px-3 sm:px-4 ${
-                              col.align === 'right' ? 'text-right font-mono' : 'text-left'
+                              col.align === 'right'? 'text-right font-mono' : 'text-left'
                             } ${
-                              isDebit && val !== '—'
-                                ? 'text-rose-600 font-medium'
-                                : col.key === 'credit' && val !== '—'
-                                ? 'text-emerald-600 font-medium'
+                              isDebit && val!== '—'
+                               ? 'text-rose-600 font-medium'
+                                : col.key === 'credit' && val!== '—'
+                               ? 'text-emerald-600 font-medium'
                                 : isAmountCol
-                                ? 'text-slate-800'
+                               ? 'text-slate-800'
                                 : 'text-slate-700'
                             }`}
                           >
                             <div>
                               <span>{String(val)}</span>
                               {showRawView && col.key === 'description' && tx.rawLine && (
-                                <p className="text-[10px] text-slate-400 font-mono mt-0.5 truncate max-w-sm">
+                                <p className="text- text-slate-400 font-mono mt-0.5 truncate max-w-sm">
                                   Raw: {tx.rawLine}
                                 </p>
                               )}
@@ -402,9 +496,8 @@ export const ConverterTool: React.FC = () => {
               </table>
             </div>
 
-            {/* Disclaimer under table (Mandatory requirement #9) */}
             <div className="bg-amber-50/80 border border-amber-200/70 rounded-lg p-3 text-xs text-amber-800 flex items-center gap-2">
-              <span className="text-sm">⚠️</span>
+              <span className="text-sm">⚠</span>
               <p>
                 <strong>Beta parser</strong> — please review the extracted data before relying on it for accounting purposes. Bank statement formatting can vary across institutions.
               </p>
