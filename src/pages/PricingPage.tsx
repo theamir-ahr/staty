@@ -12,7 +12,17 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onNavigate }) => {
     if (existing) {
       if ((window as any).Paddle) {
         (window as any).Paddle.Environment.set('production')
-        ;(window as any).Paddle.Initialize({ token: 'live_2f479480b152ab571be8acd35c7' })
+        // ADDED: unlock logic
+        ;(window as any).Paddle.Initialize({
+          token: 'live_2f479480b152ab571be8acd35c7',
+          eventCallback: (data: any) => {
+            if (data.name === 'checkout.completed') {
+              localStorage.setItem('staty_pro', 'true')
+              localStorage.setItem('staty_pro_email', data.data?.customer?.email || '')
+              window.location.href = '/?paid=success'
+            }
+          }
+        })
       }
       return;
     }
@@ -22,8 +32,18 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onNavigate }) => {
     script.onload = () => {
       // @ts-ignore
       window.Paddle.Environment.set('production')
+      // ADDED: unlock logic
       // @ts-ignore
-      window.Paddle.Initialize({ token: 'live_2f479480b152ab571be8acd35c7' })
+      window.Paddle.Initialize({
+        token: 'live_2f479480b152ab571be8acd35c7',
+        eventCallback: (data: any) => {
+          if (data.name === 'checkout.completed') {
+            localStorage.setItem('staty_pro', 'true')
+            localStorage.setItem('staty_pro_email', data.data?.customer?.email || '')
+            window.location.href = '/?paid=success'
+          }
+        }
+      })
     }
     document.body.appendChild(script)
   }, [])
@@ -31,22 +51,22 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onNavigate }) => {
   const openMonthly = () => {
     // @ts-ignore
     window.Paddle?.Checkout.open({
-      items: [{ priceId: 'pri_01m2ra3dy583ac8qtb5erzed8j', quantity: 1 }]
+      items: [{ priceId: 'pri_01m2ra3dy583ac8qtb5erzed8j', quantity: 1 }],
+      settings: { successUrl: 'https://getstaty.vercel.app/?paid=success' } // ADDED
     })
   }
 
   const openAnnual = () => {
     // @ts-ignore
     window.Paddle?.Checkout.open({
-      items: [{ priceId: 'pri_01m2ra7gg41wfqqnnb9rk9nz5v', quantity: 1 }]
+      items: [{ priceId: 'pri_01m2ra7gg41wfqqnnb9rk9nz5v', quantity: 1 }],
+      settings: { successUrl: 'https://getstaty.vercel.app/?paid=success' } // ADDED
     })
   }
 
   return (
     <div className="bg-[#f8fafc] min-h-screen">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-
-        {/* Header */}
         <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-green-50 border border-green-200 text-green-800 text-xs font-bold tracking-widest uppercase">
             <Sparkles className="w-3.5 h-3.5 text-green-600" />
@@ -59,12 +79,8 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onNavigate }) => {
             No hidden fees. Cancel anytime. Choose the plan that fits your bookkeeping workflow.
           </p>
         </div>
-
-        {/* Cards */}
         <div className="grid md:grid-cols-3 gap-6 lg:gap-8 items-start">
-
-          {/* Free */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-8 flex flex-col min-h-[500px]">
+          <div className="bg-white border border-slate-200 rounded-2xl p-8 flex flex-col min-h-">
             <h3 className="font-bold text-slate-900 text-xl">Free</h3>
             <p className="text-slate-500 text-sm mt-2 leading-relaxed">Ideal for individuals and quick one-off statement conversions.</p>
             <div className="mt-6 flex items-baseline gap-2">
@@ -81,9 +97,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onNavigate }) => {
             </ul>
             <button onClick={() => onNavigate('home')} className="w-full mt-8 bg-slate-100 text-slate-600 border border-slate-200 rounded-full py-3 font-semibold text-sm">Currently Active</button>
           </div>
-
-          {/* Monthly - BEST VALUE */}
-          <div className="bg-white border-2 border-green-500 rounded-2xl p-8 flex flex-col min-h-[540px] relative shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+          <div className="bg-white border-2 border-green-500 rounded-2xl p-8 flex flex-col min-h- relative shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
             <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-green-600 text-white text-xs px-4 py-1.5 rounded-full font-bold tracking-widest whitespace-nowrap">BEST VALUE</div>
             <h3 className="font-bold text-slate-900 text-xl">Monthly</h3>
             <p className="text-slate-500 text-sm mt-2 leading-relaxed">Perfect for accountants, bookkeepers, and active businesses.</p>
@@ -103,9 +117,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onNavigate }) => {
             </ul>
             <button onClick={openMonthly} className="w-full mt-8 bg-black text-white rounded-full py-3.5 font-semibold text-sm hover:bg-slate-800 transition">Subscribe Monthly</button>
           </div>
-
-          {/* Annual */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-8 flex flex-col min-h-[500px]">
+          <div className="bg-white border border-slate-200 rounded-2xl p-8 flex flex-col min-h-">
             <div className="flex items-center gap-2.5">
               <h3 className="font-bold text-slate-900 text-xl">Annual</h3>
               <span className="bg-green-50 text-green-700 border border-green-100 text-xs px-2.5 py-1 rounded-full font-bold">Save 31%</span>
@@ -127,15 +139,12 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onNavigate }) => {
             </ul>
             <button onClick={openAnnual} className="w-full mt-8 bg-black text-white rounded-full py-3.5 font-semibold text-sm hover:bg-slate-800 transition">Subscribe Annual</button>
           </div>
-
         </div>
-
         <div className="flex justify-center mt-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-500 text-sm">
             <span>Paid plans will be active via secure checkout (powered by Paddle).</span>
           </div>
         </div>
-
       </div>
     </div>
   )
