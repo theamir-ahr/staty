@@ -1,16 +1,17 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ConverterTool } from '../components/ConverterTool';
-import { 
-  ShieldCheck, 
-  Zap, 
-  FileSpreadsheet, 
-  CheckCircle, 
-  Lock, 
-  Cpu, 
+import {
+  ShieldCheck,
+  Zap,
+  FileSpreadsheet,
+  CheckCircle,
+  Lock,
+  Cpu,
   ArrowRight,
   HelpCircle,
   Building2,
-  FileCheck
+  FileCheck,
+  Sparkles
 } from 'lucide-react';
 import { PageRoute } from '../types';
 
@@ -19,9 +20,37 @@ interface HomePageProps {
 }
 
 export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
+  const [showProSuccess, setShowProSuccess] = useState(false);
+
+  // ADDED: Pro success message
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('paid') === 'success') {
+      localStorage.setItem('staty_pro', 'true');
+      setShowProSuccess(true);
+      window.history.replaceState({}, '', window.location.pathname);
+      setTimeout(() => setShowProSuccess(false), 6000);
+    }
+  }, []);
+
   return (
     <div className="space-y-16 sm:space-y-24 pb-16">
-      
+
+      {/* ADDED: Pro Success Message */}
+      {showProSuccess && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] bg-black text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border border-green-500/30 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+            <CheckCircle className="w-5 h-5 text-white" />
+          </div>
+          <div className="text-left">
+            <p className="font-bold text-sm flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-yellow-400" /> Pro Activated!
+            </p>
+            <p className="text-xs text-slate-300">Welcome to Staty Pro - Unlimited conversions unlocked 🚀</p>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className="pt-8 sm:pt-14 text-center px-4 sm:px-6 max-w-4xl mx-auto space-y-5">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-green-50 border border-green-200/80 text-green-800 text-xs font-semibold tracking-wide uppercase shadow-xs">
@@ -46,7 +75,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
       {/* 3-Column Feature Grid (Mandatory requirement #1) */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          
+
           {/* Feature 1: 100% Secure & Private */}
           <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
             <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-5">
@@ -128,7 +157,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
               </div>
               <h4 className="text-base font-semibold text-white">Download Spreadsheet</h4>
               <p className="text-sm text-slate-400 leading-relaxed">
-                Export cleanly formatted .XLSX or .CSV files ready for tax preparation and financial analysis.
+                Export cleanly formatted.XLSX or.CSV files ready for tax preparation and financial analysis.
               </p>
             </div>
           </div>
@@ -190,7 +219,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
               Can I use the generated Excel file for accounting and tax filing?
             </h4>
             <p className="text-sm text-slate-600 leading-relaxed">
-              Yes. The exported .xlsx and .csv files follow standard accounting columns (Date, Description, Debit, Credit, Balance) that can be imported immediately into QuickBooks, Xero, Wave, or reviewed manually in Excel or Google Sheets.
+              Yes. The exported.xlsx and.csv files follow standard accounting columns (Date, Description, Debit, Credit, Balance) that can be imported immediately into QuickBooks, Xero, Wave, or reviewed manually in Excel or Google Sheets.
             </p>
           </div>
         </div>
